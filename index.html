@@ -118,7 +118,7 @@
                     <thead>
                         <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 text-xs uppercase tracking-wider">
                             <th class="p-3 font-semibold text-center w-24">Netbook</th>
-                            <th class="p-3 font-semibold text-center w-36">Módulo / Horario</th>
+                            <th class="p-3 font-semibold text-center w-36">Módulos / Horario</th>
                             <th class="p-3 font-semibold">Curso / División</th>
                             <th class="p-3 font-semibold">Materia</th>
                             <th class="p-3 font-semibold">Docente a Cargo</th>
@@ -134,15 +134,20 @@
         </div>
     </main>
 
-    <!-- Modal de Carga Masiva (Todas las Netbooks en una sola ventana) -->
+    <!-- Modal de Carga Masiva -->
     <div id="modalNetbook" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 overflow-y-auto max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
                 <div>
                     <h3 id="modalTitulo" class="text-base font-bold text-slate-900"><i class="fa-solid fa-bolt text-indigo-600 mr-2"></i>Asignación Masiva del Carro de Netbooks</h3>
-                    <p class="text-xs text-slate-500">Configurá los datos de la clase arriba y completá los alumnos o grupos para las netbooks que se entregan.</p>
+                    <p class="text-xs text-slate-500">Configurá los rangos de módulos, curso y completá las netbooks entregadas.</p>
                 </div>
-                <button onclick="cerrarModalNetbook()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold px-2">&times;</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="abrirModalCopiar()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy text-indigo-600"></i> Copiar de otro registro
+                    </button>
+                    <button onclick="cerrarModalNetbook()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold px-2">&times;</button>
+                </div>
             </div>
 
             <form id="formNetbook" onsubmit="guardarRegistroMasivo(event)" class="space-y-4 text-xs flex-grow flex flex-col">
@@ -159,8 +164,14 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-600 mb-1">MÓDULO HORARIO</label>
-                        <select id="modalModulo" required class="w-full border border-slate-300 rounded-lg p-2 outline-none bg-white font-medium">
+                        <label class="block font-bold text-slate-600 mb-1">MÓDULO INICIAL</label>
+                        <select id="modalModuloInicio" required class="w-full border border-slate-300 rounded-lg p-2 outline-none bg-white font-medium">
+                            <!-- Rellenado por JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-600 mb-1">MÓDULO FINAL</label>
+                        <select id="modalModuloFin" required class="w-full border border-slate-300 rounded-lg p-2 outline-none bg-white font-medium">
                             <!-- Rellenado por JS -->
                         </select>
                     </div>
@@ -192,7 +203,7 @@
                             <option value="7° B - Electromecánica">7° Año B (Electromec.)</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="md:col-span-4">
                         <label class="block font-bold text-slate-600 mb-1">MATERIA</label>
                         <input type="text" id="modalMateria" list="listaMaterias" placeholder="Ej: Laboratorio" required class="w-full border border-slate-300 rounded-lg p-2 outline-none bg-white">
                         <datalist id="listaMaterias"></datalist>
@@ -207,8 +218,8 @@
                 <!-- Grilla de las 40 Netbooks para completar alumnos -->
                 <div>
                     <h4 class="font-bold text-slate-700 text-xs uppercase mb-2">Asignar Alumnos por Netbook (Dejar en blanco las que no se usen)</h4>
-                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 max-h-[300px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2" id="contenedorGrillaMasiva">
-                        <!-- Generado dinámicamente con JS -->
+                    <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 max-h-[260px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2" id="contenedorGrillaMasiva">
+                        <!-- Generado por JS -->
                     </div>
                 </div>
 
@@ -217,6 +228,20 @@
                     <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold shadow">Guardar Todo el Carro</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal secundario para Copiar Asignación Existente -->
+    <div id="modalCopiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-[60]">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-bold text-slate-900"><i class="fa-solid fa-copy text-indigo-600 mr-2"></i>Seleccionar bloque a copiar</h3>
+                <button onclick="cerrarModalCopiar()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            <p class="text-xs text-slate-500 mb-3">Elegí una asignación previa para copiar los datos y los apellidos de los alumnos al formulario actual:</p>
+            <div id="listaBloquesParaCopiar" class="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                <!-- Generado por JS -->
+            </div>
         </div>
     </div>
 
@@ -239,10 +264,14 @@
         let registrosNetbooks = [];
 
         function inicializarSelectsForm() {
-            const selectMod = document.getElementById('modalModulo');
-            selectMod.innerHTML = '';
+            const selectModInicio = document.getElementById('modalModuloInicio');
+            const selectModFin = document.getElementById('modalModuloFin');
+            selectModInicio.innerHTML = '';
+            selectModFin.innerHTML = '';
+
             modulosHorarios.forEach(m => {
-                selectMod.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
+                selectModInicio.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
+                selectModFin.innerHTML += `<option value="${m.id}">Módulo ${m.id} (${m.rango})</option>`;
             });
 
             // Generar los 40 inputs en la ventana masiva
@@ -303,8 +332,11 @@
 
         function abrirModalAsignacionMasiva() {
             document.getElementById('modalDia').value = document.getElementById('selectDia').value;
+            document.getElementById('modalModuloInicio').value = 1;
+            document.getElementById('modalModuloFin').value = 1;
+            document.getElementById('modalMateria').value = '';
+            document.getElementById('modalDocente').value = '';
             
-            // Limpiar los inputs de alumnos al abrir
             for (let i = 1; i <= 40; i++) {
                 document.getElementById(`input_alumno_${i}`).value = '';
             }
@@ -319,19 +351,93 @@
             document.getElementById('modalNetbook').classList.add('hidden');
         }
 
+        function abrirModalCopiar() {
+            const contenedorListado = document.getElementById('listaBloquesParaCopiar');
+            contenedorListado.innerHTML = '';
+
+            const bloquesUnicos = {};
+            registrosNetbooks.forEach(r => {
+                const key = `${r.dia}_${r.moduloInicio || r.moduloId}_${r.moduloFin || r.moduloId}_${r.curso}_${r.materia}_${r.docente}`;
+                if (!bloquesUnicos[key]) {
+                    bloquesUnicos[key] = {
+                        dia: r.dia,
+                        moduloInicio: r.moduloInicio || r.moduloId,
+                        moduloFin: r.moduloFin || r.moduloId,
+                        curso: r.curso,
+                        materia: r.materia,
+                        docente: r.docente,
+                        items: []
+                    };
+                }
+                bloquesUnicos[key].items.push(r);
+            });
+
+            const llaves = Object.keys(bloquesUnicos);
+            if (llaves.length === 0) {
+                contenedorListado.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">No hay registros previos cargados para copiar.</p>`;
+            } else {
+                llaves.forEach(k => {
+                    const b = bloquesUnicos[k];
+                    contenedorListado.innerHTML += `
+                        <div onclick='cargarBloqueCopiado(${JSON.stringify(b)})' class="p-2.5 rounded-xl border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 cursor-pointer transition text-xs space-y-1">
+                            <div class="flex justify-between font-bold text-slate-800">
+                                <span>${b.curso}</span>
+                                <span class="text-indigo-600">${b.dia} (Mód. ${b.moduloInicio} al ${b.moduloFin})</span>
+                            </div>
+                            <div class="text-slate-600">${b.materia} — <span class="text-slate-500 font-medium">${b.docente}</span></div>
+                            <div class="text-[10px] text-slate-400">${b.items.length} netbooks asignadas</div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('modalCopiar').classList.remove('hidden');
+            document.getElementById('modalCopiar').classList.add('flex');
+        }
+
+        function cerrarModalCopiar() {
+            document.getElementById('modalCopiar').classList.remove('flex');
+            document.getElementById('modalCopiar').classList.add('hidden');
+        }
+
+        function cargarBloqueCopiado(bloque) {
+            document.getElementById('modalDia').value = bloque.dia;
+            document.getElementById('modalModuloInicio').value = bloque.moduloInicio;
+            document.getElementById('modalModuloFin').value = bloque.moduloFin;
+            document.getElementById('modalCurso').value = bloque.curso;
+            document.getElementById('modalMateria').value = bloque.materia;
+            document.getElementById('modalDocente').value = bloque.docente;
+
+            for (let i = 1; i <= 40; i++) {
+                document.getElementById(`input_alumno_${i}`).value = '';
+            }
+
+            bloque.items.forEach(item => {
+                const input = document.getElementById(`input_alumno_${item.netbookNum}`);
+                if (input) input.value = item.alumno;
+            });
+
+            cerrarModalCopiar();
+        }
+
         function guardarRegistroMasivo(e) {
             e.preventDefault();
 
             const dia = document.getElementById('modalDia').value;
-            const moduloId = parseInt(document.getElementById('modalModulo').value);
+            const moduloInicio = parseInt(document.getElementById('modalModuloInicio').value);
+            const moduloFin = parseInt(document.getElementById('modalModuloFin').value);
+
+            if (moduloFin < moduloInicio) {
+                alert("El módulo final no puede ser menor al módulo inicial.");
+                return;
+            }
+
             const curso = document.getElementById('modalCurso').value;
             const materia = document.getElementById('modalMateria').value.trim();
             const docente = document.getElementById('modalDocente').value.trim();
 
-            // Quitamos los registros anteriores que coincidan con este mismo día y módulo para reemplazarlos por la nueva selección masiva limpia
-            registrosNetbooks = registrosNetbooks.filter(r => !(r.dia === dia && r.moduloId === moduloId));
+            registrosNetbooks = registrosNetbooks.filter(r => !(r.dia === dia && (r.moduloInicio || r.moduloId) === moduloInicio && (r.moduloFin || r.moduloId) === moduloFin));
 
-            // Recorremos los 40 inputs y guardamos solo los que tengan alumnos escritos
             for (let i = 1; i <= 40; i++) {
                 const alumnoVal = document.getElementById(`input_alumno_${i}`).value.trim();
                 if (alumnoVal) {
@@ -339,7 +445,8 @@
                         id: Date.now() + i,
                         netbookNum: i,
                         dia: dia,
-                        moduloId: moduloId,
+                        moduloInicio: moduloInicio,
+                        moduloFin: moduloFin,
                         curso: curso,
                         materia: materia,
                         docente: docente,
@@ -383,7 +490,7 @@
                 datosFiltrados = registrosNetbooks.filter(r => r.dia === diaSeleccionado);
             }
 
-            datosFiltrados.sort((a, b) => a.netbookNum - b.netbookNum || a.moduloId - b.moduloId);
+            datosFiltrados.sort((a, b) => a.netbookNum - b.netbookNum || (a.moduloInicio || a.moduloId) - (b.moduloInicio || b.moduloId));
 
             if (datosFiltrados.length === 0) {
                 tbody.innerHTML = `
@@ -397,8 +504,13 @@
             }
 
             datosFiltrados.forEach(r => {
-                const modObj = modulosHorarios.find(m => m.id === r.moduloId);
-                const rangoHorario = modObj ? modObj.rango : '';
+                const modIni = r.moduloInicio || r.moduloId;
+                const modFin = r.moduloFin || r.moduloId;
+                const objIni = modulosHorarios.find(m => m.id === modIni);
+                const objFin = modulosHorarios.find(m => m.id === modFin);
+                
+                let textoModulos = modIni === modFin ? `Módulo ${modIni}` : `Módulos ${modIni} al ${modFin}`;
+                let rangoHorario = objIni && objFin ? `${objIni.rango.split(' - ')[0]} a ${objFin.rango.split(' - ')[1]}` : '';
 
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 transition";
@@ -409,7 +521,7 @@
                         </span>
                     </td>
                     <td class="p-3 text-center text-xs">
-                        <span class="block font-bold text-slate-700">Módulo ${r.moduloId}</span>
+                        <span class="block font-bold text-slate-700">${textoModulos}</span>
                         <span class="text-slate-500">${r.dia} (${rangoHorario})</span>
                     </td>
                     <td class="p-3 font-semibold text-slate-700 text-xs">${r.curso}</td>
